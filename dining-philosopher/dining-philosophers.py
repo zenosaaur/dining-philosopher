@@ -2,6 +2,9 @@
 import threading 
 import time
 import random
+import logging
+logging.basicConfig(level=logging.INFO,format="%(message)s")
+info= logging.info
 
 N  = 5
 def LEFT  (i): return (i-1) % N
@@ -11,7 +14,7 @@ HUNGRY   = 1
 EATING   = 2
 
 mutex = threading.Semaphore(1) 
-s = [threading.Semaphore(1) for n in range(N)]
+s = [threading.Semaphore(0) for n in range(N)]
 state = [THINKING] * N
 
 def down(sem): sem.acquire()
@@ -32,12 +35,12 @@ def philosopher(i):
 
 def think(i):
     
-    print("phil %d THINKING" % i)
+    info("phil %d THINKING" % i)
     sleep_between(0.5, 2.0)
 
 def eat(i):
 
-    print("phil %d EATING" % i)
+    info("phil %d EATING" % i)
     print_eaters()
     sleep_between(0.2, 1.0)
 
@@ -54,7 +57,7 @@ def take_forks(i):
 
     down(mutex)
     state[i] = HUNGRY
-    print("phil %d HUNGRY" % i)
+    info("phil %d HUNGRY" % i)
     test(i)
     up(mutex)
     down(s[i])  
@@ -74,29 +77,28 @@ def print_eaters():
     down(mutex);
 
     ss = [state_names[state[i]] for i in range(N)]
-    print("states: %s" % " ".join(ss))
+    info("states: %s" % " ".join(ss))
     ss = [str(i)
         for i in range(N)
         if state[i] == EATING]
     c  = len(ss)
     if c > 2:
-        print("ERROR: more than one phil eating!")
+        info("ERROR: more than one phil eating!")
     if c > 0:
-        print("eaters: %s" % " ".join(ss))
+        info("eaters: %s" % " ".join(ss))
     up(mutex);
 
 def main():
 
-    print("MAIN: starting with %d philosophers" % N)
+        info("MAIN: starting with %d philosophers" % N)
 
-    up(mutex)
 
-    tt = [threading.Thread(target=philosopher, args=(i,))
-          for i in range(N)]
-    for t in tt:
-        t.start()
-    for t in tt:
-        t.join()
+        tt = [threading.Thread(target=philosopher, args=(i,))
+              for i in range(N)]
+        for t in tt:
+            t.start()
+        for t in tt:
+            t.join()
     
 if __name__ == '__main__':
 
